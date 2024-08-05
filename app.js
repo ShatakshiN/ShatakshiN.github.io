@@ -12,8 +12,11 @@ const jwt = require('jsonwebtoken');
 const Razorpay = require('razorpay');
 //const Brevo = require('@getbrevo/brevo');
 var Brevo = require('@getbrevo/brevo');
-const aws = require('aws-sdk');
+//const aws = require('aws-sdk');
 const favicon = require('serve-favicon');
+
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+//const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
 //adds security to headers
 const helmet = require('helmet');
@@ -439,8 +442,7 @@ function uploadToS3(data, fileName){
     const BUCKET_NAME = "exptrackershatakshi";
     const IAM_USER_KEY = process.env.AWS_ACCESS_KEY;
     const IAM_USER_SECRET = process.env.AWS_SECRET_ACCESS_KEY;
-
-    let s3bucket = new aws.S3({
+    const s3Client = new S3Client({
         accessKeyId: IAM_USER_KEY,
         secretAccessKey: IAM_USER_SECRET,
     })
@@ -452,18 +454,23 @@ function uploadToS3(data, fileName){
         ACL: 'public-read'
     }
     return new Promise((resolve, reject)=>{
-        s3bucket.upload(params,(err,s3Response)=>{
+        s3bucket.upload(new PutObjectCommand(params),(err,data)=>{
             if(err){
                 console.log("Something is Wrong",err);
                 reject(err);
             }
             else{
-                console.log("Success",s3Response);
+                console.log("Success", data);
                 resolve(s3Response.Location);
             }
         })
 
     })
+
+
+    
+
+    
 
 
 }
